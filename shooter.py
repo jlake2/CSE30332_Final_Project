@@ -19,11 +19,19 @@ class Player(pygame.sprite.Sprite):
 		self.image = pygame.image.load("images/redBlock.png")
 		self.laser = pygame.image.load("laser.png")
 		self.rect = self.image.get_rect()
+		self.rect = self.rect.move(20,SCREEN_HEIGHT-self.rect.h)
+		self.left = 0
+		self.right = 0
+		self.up = 0
+		self.down = 0
 
 		#Location/velocity of the death star:
 		self.location = self.rect
+		self.gravity = 1
 		self.velX = 0
 		self.velY = 0
+	def jump(self):
+		self.velY = -20
 
 	def containWithinBorder(self):
 		l = self.rect
@@ -44,27 +52,41 @@ class Player(pygame.sprite.Sprite):
 			#If you press a key, move in that direction
 			if event.type is pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
-					self.velX = -5
+					self.left = 1
 				elif event.key == pygame.K_RIGHT:
-					self.velX = 5
+					self.right = 1
 				elif event.key == pygame.K_UP:
-					self.velY = -5
+					self.up = 1
 				elif event.key == pygame.K_DOWN:
-					self.velY = 5
+					self.down = 1
+				elif event.key == pygame.K_SPACE:
+					self.jump()
 			#if you let up on a key in a direction, stop motion in that direction: 
 			elif event.type is pygame.KEYUP:
 				if event.key == pygame.K_LEFT:
-					self.velX = 0
+					self.left = 0
 				elif event.key == pygame.K_RIGHT:
-					self.velX = 0
+					self.right = 0
 				elif event.key == pygame.K_UP:
-					self.velY = 0
+					self.up = 0
 				elif event.key == pygame.K_DOWN:
-					self.velY = 0
+					self.down = 0
 
-		#Move the death star
+
+		#Determine the velocity: 
+		self.velX = 0
+		if self.left:
+			self.velX = -5
+		elif self.right:
+			self.velX = 5
+		
+
+		#Account for gravity: 
+		self.velY = self.velY + self.gravity
+
 		self.rect = self.rect.move(self.velX,self.velY)
 		self.containWithinBorder()
+		#TODO: Platform detection
 
 			
 
