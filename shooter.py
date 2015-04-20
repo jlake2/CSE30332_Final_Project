@@ -10,6 +10,25 @@ import math
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 480
 
+class Bullet(pygame.sprite.Sprite):
+	def __init__(self,gs=None,posX=0,posY=0,fac=0):
+		#Initialize the sprite, sound, and images:
+		gs.bullet = self
+		pygame.sprite.Sprite.__init__(self)
+		self.image = pygame.image.load("laser.png")
+		self.rect = self.image.get_rect()
+		self.rect = self.rect.move(posX,posY)
+
+		#Laser movement: 
+		self.location = self.rect
+		self.velX = 5
+		if fac:
+			self.velX = -5
+	def tick(self):
+		self.rect = self.rect.move(self.velX,0)
+		
+
+
 #Player class: 
 class Player(pygame.sprite.Sprite):
 	def __init__(self,gs=None):
@@ -20,6 +39,7 @@ class Player(pygame.sprite.Sprite):
 		self.laser = pygame.image.load("laser.png")
 		self.rect = self.image.get_rect()
 		self.rect = self.rect.move(20,SCREEN_HEIGHT-self.rect.h)
+		self.facing = 0
 		self.left = 0
 		self.right = 0
 		self.up = 0
@@ -53,14 +73,18 @@ class Player(pygame.sprite.Sprite):
 			if event.type is pygame.KEYDOWN:
 				if event.key == pygame.K_LEFT:
 					self.left = 1
+					self.facing = 1
 				elif event.key == pygame.K_RIGHT:
 					self.right = 1
+					self.facing = 0
 				elif event.key == pygame.K_UP:
 					self.up = 1
 				elif event.key == pygame.K_DOWN:
 					self.down = 1
 				elif event.key == pygame.K_SPACE:
 					self.jump()
+				elif event.key == pygame.K_c:
+					b = Bullet(gs,self.rect.x,self.rect.y,self.facing)
 			#if you let up on a key in a direction, stop motion in that direction: 
 			elif event.type is pygame.KEYUP:
 				if event.key == pygame.K_LEFT:
@@ -83,7 +107,6 @@ class Player(pygame.sprite.Sprite):
 
 		#Account for gravity: 
 		self.velY = self.velY + self.gravity
-
 		self.rect = self.rect.move(self.velX,self.velY)
 		self.containWithinBorder()
 		#TODO: Platform detection
@@ -103,6 +126,7 @@ class GameSpace:
 		self.screen = pygame.display.set_mode(self.size)
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
+		self.bullet = Bullet(self)
 
 
 
@@ -110,8 +134,10 @@ class GameSpace:
 		while True:
 			self.clock.tick(60)
 			self.player.tick()
+			self.bullet.tick()
 			self.screen.fill(self.black)
 			self.screen.blit(self.player.image,self.player.rect)
+			self.screen.blit(self.bullet.image,self.bullet.rect)
 			pygame.display.flip()
 
 
