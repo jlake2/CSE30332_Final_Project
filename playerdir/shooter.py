@@ -7,6 +7,12 @@
 import pygame
 import math
 import sys
+from datetime import datetime
+from twisted.internet.protocol import Factory
+from twisted.internet.protocol import ClientFactory
+from twisted.internet.protocol import Protocol
+from twisted.internet.task import LoopingCall
+from twisted.internet import reactor
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
@@ -39,7 +45,6 @@ class Player(pygame.sprite.Sprite):
 		pygame.sprite.Sprite.__init__(self)
 		self.image = pygame.image.load("images/redBlock2.png")
 		self.gs = gs
-		#self.laser = pygame.image.load("laser.png")
 		self.rect = self.image.get_rect()
 		self.rect = self.rect.move(20,SCREEN_HEIGHT-self.rect.h)
 		self.facing = 0
@@ -88,7 +93,6 @@ class Player(pygame.sprite.Sprite):
 					self.jump()
 				elif event.key == pygame.K_c:
 					gs.bullet_list.append(Bullet(self.gs,self.rect.x,self.rect.y,self.facing))
-					#b = Bullet(gs,self.rect.x,self.rect.y,self.facing)
 			#if you let up on a key in a direction, stop motion in that direction: 
 			elif event.type is pygame.KEYUP:
 				if event.key == pygame.K_LEFT or event.key == pygame.K_a:
@@ -130,30 +134,31 @@ class GameSpace:
 		#Initialize everything:
 		pygame.init()
 		pygame.mixer.init()
+
 		self.size = self.width,self.height=800,800
 		self.black = 0,0,0
 		self.screen = pygame.display.set_mode(self.size)
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
 		self.bullet_list = []
-		#self.bullet = Bullet(self)
+
 
 
 
 		#Main game loop;
-		while True:
-			self.clock.tick(60)
-			self.player.tick()
-			#self.bullet.tick()
-			for bullet in self.bullet_list:
-				bullet.tick()
+	def pygame_interior(self):
 
-			self.screen.fill(self.black)
-			self.screen.blit(self.player.image,self.player.rect)
-			#self.screen.blit(self.bullet.image,self.bullet.rect)
-			for bullet in self.bullet_list:
-				self.screen.blit(bullet.image, bullet.rect)
-			pygame.display.flip()
+		self.clock.tick(60)
+		self.player.tick()
+		#self.bullet.tick()
+		for bullet in self.bullet_list:
+			bullet.tick()
+		self.screen.fill(self.black)
+		self.screen.blit(self.player.image,self.player.rect)
+		for bullet in self.bullet_list:
+			self.screen.blit(bullet.image, bullet.rect)
+		pygame.display.flip()
+
 
 
 
@@ -161,3 +166,7 @@ class GameSpace:
 if __name__ == '__main__':
 	gs = GameSpace()
 	gs.main()
+	FPS = 45
+	lc = LoopingCall(gs.pygame_interior)
+	lc.start(1/FPS)
+	reactor.run()
