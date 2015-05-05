@@ -213,7 +213,8 @@ class Player(pygame.sprite.Sprite):
 						self.right = 1
 						self.facing = 0
 					elif event.key == pygame.K_UP or event.key == pygame.K_w:
-						self.up = 1
+						if self.canJump:
+							self.jump()
 					elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
 						self.down = 1
 					#Jump:
