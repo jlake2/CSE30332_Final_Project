@@ -8,35 +8,12 @@ import sys
 from datetime import datetime
 from twisted.internet.protocol import Factory
 from twisted.internet.protocol import ClientFactory
-from twisted.protocols.basic import LineReceiver
 from twisted.internet.protocol import Protocol
 from twisted.internet.task import LoopingCall
 from twisted.internet import reactor
-import cPickle as pickle
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
-
-
-#Data Protocol
-class Data(LineReceiver,gs):
-	#Forward data to client connection
-	def dataReceived(self,data):
-		d = pickle.loads(data)	
-	#Send data along data connection
-	def sendData(self,arg):
-		self.transport.write(arg)
-
-#Factory for Data connection
-class DataFactory(Factory):
-	def __init__(self):
-		self.prot = Data()
-	def buildProtocol(self, addr):
-		return self.prot
-	def getProt(self):
-		return self.prot
-
-
 
 class Bullet(pygame.sprite.Sprite):
 	def __init__(self,gs=None,posX=0,posY=0,fac=0):
@@ -185,10 +162,16 @@ class Player(pygame.sprite.Sprite):
 			self.velX = 5
 		
 
-		#Gravity
+		#Account for gravity: 
 		self.velY = self.velY + self.gravity
 		self.rect = self.rect.move(self.velX,self.velY)
+		#self.containWithinBorder()
 		self.collideWalls()
+		#TODO: Platform detection
+
+			
+
+				
 
 #Main game class: 
 class GameSpace:
@@ -246,7 +229,6 @@ class GameSpace:
 #Run the game 
 if __name__ == '__main__':
 	gs = GameSpace()
-	df = DataFactory(gs)
 	gs.main()
 	FPS = 45
 	lc = LoopingCall(gs.pygame_interior)

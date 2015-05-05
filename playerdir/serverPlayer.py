@@ -19,18 +19,21 @@ SCREEN_HEIGHT = 800
 
 
 #Data Protocol
-class Data(LineReceiver,gs):
+class Data(LineReceiver):
+	def __init__(self,gs=None):
+		self.gs = gs
 	#Forward data to client connection
 	def dataReceived(self,data):
 		d = pickle.loads(data)	
+		print type(d)
 	#Send data along data connection
 	def sendData(self,arg):
 		self.transport.write(arg)
 
 #Factory for Data connection
 class DataFactory(Factory):
-	def __init__(self):
-		self.prot = Data()
+	def __init__(self,gs=None):
+		self.prot = Data(gs)
 	def buildProtocol(self, addr):
 		return self.prot
 	def getProt(self):
@@ -116,25 +119,21 @@ class Player(pygame.sprite.Sprite):
 	def collideWalls(self):
 		for wall in gs.wall_list:
 		    if self.rect.colliderect(wall.rect):	
+			#Depending on the type of wall, react accordingly
 			if wall.type == 5:
-				print "PLAT"
 				if self.velY <0:
 					self.rect.top = wall.rect.bottom+1
 				else:
 					self.rect.bottom = wall.rect.top-1
 				self.velY = 0
 			elif wall.type == 1:
-				print "LEFT"
 				self.rect.left = wall.rect.right+1
 			elif wall.type == 2:
-				print "TOP"
 				self.rect.top = wall.rect.bottom+1
 				self.velY = 0
 			elif wall.type == 3:
-				print "RIGHT"
 				self.rect.right = wall.rect.left-1
 			elif wall.type == 4:
-				print "BOTTOM"
 				self.rect.bottom = wall.rect.top-1
 				self.velY = 0
 			
@@ -247,6 +246,7 @@ class GameSpace:
 if __name__ == '__main__':
 	gs = GameSpace()
 	df = DataFactory(gs)
+	reactor.listenTCP(9876,df)
 	gs.main()
 	FPS = 45
 	lc = LoopingCall(gs.pygame_interior)
