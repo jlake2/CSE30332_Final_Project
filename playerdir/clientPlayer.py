@@ -35,7 +35,6 @@ class Data(LineReceiver):
 			if d['message'] == "deleteBullet":
 				gs.deleteBullet(d['b_x'])
 			if d['message'] == "deletePlayer":
-				print "Enemy Dead"
 				gs.deletePlayer()
 
 		#print type(d)
@@ -184,7 +183,6 @@ class Player(pygame.sprite.Sprite):
 	def tick(self):
 		#User input: 
 		self.reloadDelay = self.reloadDelay + 1
-		print self.bullets
 		if self.reloadDelay == 100:
 			self.reloadDelay = 0
 			self.bullets= self.bullets + 1
@@ -255,7 +253,7 @@ class Player(pygame.sprite.Sprite):
 			health_dict['message'] = "deletePlayer"
 			pd = pickle.dumps(health_dict)
 			df.getProt().sendData(pd)
-			print "SENDING DELETED PLAYER"
+
 
 #Main game class: 
 class GameSpace:
@@ -263,6 +261,11 @@ class GameSpace:
 		#Initialize everything:
 		pygame.init()
 		pygame.mixer.init()
+		pygame.display.set_caption("RED VS. BLUE")
+		self.redWinsImage = pygame.image.load("images/redWins.png")
+		self.blueWinsImage = pygame.image.load("images/blueWins.png")
+		self.redWinsRect = self.redWinsImage.get_rect()
+		self.blueWinsRect = self.blueWinsImage.get_rect()
 		self.connected = 0
 		self.size = self.width,self.height=800,800
 		self.black = 0,0,0
@@ -308,7 +311,6 @@ class GameSpace:
 				self.bullet_list.remove(b)
 
 	def deletePlayer(self):
-		print "IN DELETE PLAYER"
 		self.enemy.health = 0
 
 	def pygame_interior(self):
@@ -322,12 +324,15 @@ class GameSpace:
 		self.screen.fill(self.black)
 		if self.player.health >0:
 			self.screen.blit(self.player.image,self.player.rect)
+		else:
+			self.screen.blit(self.redWinsImage,self.redWinsRect)
 		if self.enemy.health >0:
 			self.screen.blit(self.enemy.image,self.enemy.rect)
+		else:
+			self.screen.blit(self.blueWinsImage,self.blueWinsRect)
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
 		for wall in self.wall_list:
-			#print wall.rect.center
 			self.screen.blit(wall.image, wall.rect)
 		pygame.display.flip()
 
