@@ -369,7 +369,11 @@ if __name__ == '__main__':
 	gs = GameSpace()
 	df.gs = gs
 	df.makeProt()
-	reactor.connectTCP('fitz94', 9876, df) #command connection
+	if len(sys.argv) != 2:
+		print "Need Host!"
+		sys.exit()
+	host = sys.argv[1]
+	reactor.connectTCP(host, 9876, df) #command connection
 	gs.main()
 	FPS = 45
 	lc = LoopingCall(gs.pygame_interior)

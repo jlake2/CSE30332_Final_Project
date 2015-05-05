@@ -42,6 +42,8 @@ class Data(LineReceiver):
 	def sendData(self,arg):
 		self.sendLine(arg)
 
+	
+
 #Factory for Data connection
 class DataFactory(Factory):
 	def __init__(self):
@@ -249,7 +251,6 @@ class Player(pygame.sprite.Sprite):
 				elif event.type is pygame.QUIT:
 					pygame.quit()
 					reactor.stop()
-					sys.exit(0)
 
 			#Determine the velocity: 
 			self.velX = 0

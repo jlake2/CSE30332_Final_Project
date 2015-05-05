@@ -1,10 +1,30 @@
 John Lake & James Bowyer
 RED VS BLUE - A Simple 2D Platform Shooting Game
 
+Features:
+
+Our game is a 2D shooter where you try to attack your player with small
+laser blasts.  The game features a welcome screen, moving platforms, jumping, 
+collision detection with the lasers, walls, and platforms, and a message to 
+let both users know who won.  All information is sent via Twisted. 
+
+
+Controls:
+
+Move Left: Left Arrow Key
+Move Right: Right Arrow Key
+Jump: Space bar
+Shoot: C
+
+
+
 To run:
 1) Run serverPlayer.py first on the machine you want to designate as the "server."  
+	Command: "python serverPlayer.py"
 2) Run clientPlayer.py on the machine you want to designate as the "client."
-3) Make sure the client connects to the right hostname and port!!!
+	Command: "python clientPlayer.py HOSTNAME"
+3) Make sure the client connects to the right hostname.  Port = 9876.  Hostname can vary. 
+4) As soon as the client connects, the game will begin!
 
 NOTES:
 We used the fitz machines and port 9876.
