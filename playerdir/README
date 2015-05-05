@@ -1,0 +1,12 @@
+John Lake & James Bowyer
+RED VS BLUE - A Simple 2D Platform Shooting Game
+
+To run:
+1) Run serverPlayer.py first on the machine you want to designate as the "server."  
+2) Run clientPlayer.py on the machine you want to designate as the "client."
+3) Make sure the client connects to the right hostname and port!!!
+
+NOTES:
+We used the fitz machines and port 9876.
+
+

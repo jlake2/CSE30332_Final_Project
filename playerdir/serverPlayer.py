@@ -284,6 +284,8 @@ class GameSpace:
 		self.black = 0,0,0
 		self.screen = pygame.display.set_mode(self.size)
 		pygame.display.set_caption("RED VS BLUE")
+		self.welcomeImage = pygame.image.load("images/Welcome.png")
+		self.welcomeRect = self.welcomeImage.get_rect()
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
 		self.enemy = Player(self)
@@ -344,6 +346,7 @@ class GameSpace:
 
 	#Functions for handling results from network messages
 	def areConnected(self):
+		lc.start(1/FPS)
 		self.connected = 1
 	def moveEnemy(self,rect):
 		self.enemy.rect = rect
@@ -366,7 +369,9 @@ if __name__ == '__main__':
 	df = DataFactory()
 	reactor.listenTCP(9876,df)
 	FPS = 45
+	gs.screen.blit(gs.welcomeImage,gs.welcomeRect)
+	pygame.display.flip()
 	lc = LoopingCall(gs.pygame_interior)
-	lc.start(1/FPS)
+	#lc.start(1/FPS)
 	reactor.run()
 	sys.exit()
