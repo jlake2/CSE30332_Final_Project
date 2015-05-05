@@ -11,7 +11,7 @@ let both users know who won.  All information is sent via Twisted.
 
 
 Game Play Tutorial:
-The server starts as the red block in the bottom left of the screen while the client starts as the blue block in the top right of the screen. Each player starts with three bullets and slowly regenerates the bullets over time. Each player has 5 health, which when shot by a bullet diminishes by one. The necessary controls to play and start the game are listed below.
+The server starts as the red block in the bottom left of the screen while the client starts as the blue block in the top right of the screen. Each player starts with three bullets and slowly regenerates the bullets over time. Each player has 5 health, which when shot by a bullet diminishes by one. The necessary controls to play and start the game are listed below. The server displays a welcome screen until the client is connected and then the games start - good luck!
 
 
 Controls:
