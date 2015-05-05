@@ -37,6 +37,19 @@ class Bullet(pygame.sprite.Sprite):
 		if (self.rect.right > 1000 or self.rect.left < -1000 or self.rect.top > 1000 or self.rect.bottom < -1000):
 			self.kill()
 
+class Wall(pygame.sprite.Sprite):
+	def __init__(self, gs=None, x_pos=0, y_pos=0):
+		#Initialize the sprite, sound, and images:
+		gs.wall = self
+		pygame.sprite.Sprite.__init__(self)
+		try:
+			self.image = pygame.image.load("images/wall.png")
+		except:
+			print 'An error has occurred while the game was rendering the wall images.'
+			raw_input('Press [ENTER] to exit')
+			exit(0)
+		self.rect = self.image.get_rect()
+		self.rect = self.rect.move(x_pos, y_pos)
 
 #Player class: 
 class Player(pygame.sprite.Sprite):
@@ -46,7 +59,7 @@ class Player(pygame.sprite.Sprite):
 		self.image = pygame.image.load("images/redBlock2.png")
 		self.gs = gs
 		self.rect = self.image.get_rect()
-		self.rect = self.rect.move(20,SCREEN_HEIGHT-self.rect.h)
+		self.rect = self.rect.move(50,SCREEN_HEIGHT-self.rect.h)
 		self.facing = 0
 		self.left = 0
 		self.right = 0
@@ -66,12 +79,38 @@ class Player(pygame.sprite.Sprite):
 		if l.x <= 0:
 			l.x = 0
 		if l.y <= 0:
-			l.y = 0
+			l.y = 0 
 		if l.y >= SCREEN_HEIGHT-self.rect.h:
 			l.y = SCREEN_HEIGHT-self.rect.h
 		if l.x >= SCREEN_WIDTH-self.rect.w:
 			l.x = SCREEN_WIDTH-self.rect.w
-			
+		# If you collide with a wall, move out based on velocity
+
+	def collideWalls(self):
+		for wall in gs.wall_list:
+		    if self.rect.colliderect(wall.rect):	
+			if self.velY < 1: #moving up
+				self.velY = 1
+				self.rect.top = wall.rect.bottom 
+			if self.velY > 1: #moving down
+				self.velY = 1
+				self.rect.bottom = wall.rect.top
+			#if self.velX > 1: #moving right
+			   #if y collison has already happened (AS IT WILL FOR WALKING) need to make sure its a collision between the sides 
+			#	if self.rect.right > wall.rect.left and self.rect.right>=SCREEN_WIDTH:
+			#		print self.rect.right, wall.rect.left, SCREEN_WIDTH
+			#		self.velX=0
+			#		self.rect.right=wall.rect.left-2
+			#		break
+			#if self.velX < 1: #moving left
+			#	if self.rect.left < wall.rect.right and self.rect.left <= 0:
+			#		print self.rect.left, wall.rect.right
+			#		self.velX=0
+			#		self.rect.left=wall.rect.right+2
+			#		self.rect.top = self.rect.top
+			#		break
+
+  
 
 	#Tick (alters movement and rotates the player)
 	def tick(self):
@@ -107,7 +146,8 @@ class Player(pygame.sprite.Sprite):
 				gs.bullet_list.append(Bullet(self.gs,self.rect.x,self.rect.y,self.facing))
 			elif event.type is pygame.QUIT:
 				pygame.quit()
-				sys.exit(0)
+				reactor.stop()
+				#sys.exit(0)
 
 
 		#Determine the velocity: 
@@ -121,7 +161,8 @@ class Player(pygame.sprite.Sprite):
 		#Account for gravity: 
 		self.velY = self.velY + self.gravity
 		self.rect = self.rect.move(self.velX,self.velY)
-		self.containWithinBorder()
+		#self.containWithinBorder()
+		self.collideWalls()
 		#TODO: Platform detection
 
 			
@@ -140,6 +181,22 @@ class GameSpace:
 		self.screen = pygame.display.set_mode(self.size)
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
+		self.wall_list = []
+		for x in range(0, 80):
+			self.wall_list.append(Wall(self, 0, 10*x)) 
+			self.wall_list.append(Wall(self, 10*x, 790)) 
+			self.wall_list.append(Wall(self, 790, 10*x)) 
+			self.wall_list.append(Wall(self, 10*x, 0)) 
+		for x in range (0, 40):
+			if x > 20 and x < 30:
+				continue
+			self.wall_list.append(Wall(self, 10*x, 100)) 
+			self.wall_list.append(Wall(self, 10*x+400, 200)) 
+			self.wall_list.append(Wall(self, 10*x, 350))
+			self.wall_list.append(Wall(self, 10*x+400, 450))  
+		for x in range (0, 30):
+			self.wall_list.append(Wall(self, 10*x, 700)) 
+			self.wall_list.append(Wall(self, 10*x+410, 600))
 		self.bullet_list = []
 
 
@@ -157,6 +214,9 @@ class GameSpace:
 		self.screen.blit(self.player.image,self.player.rect)
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
+		for wall in self.wall_list:
+			#print wall.rect.center
+			self.screen.blit(wall.image, wall.rect)
 		pygame.display.flip()
 
 
@@ -170,3 +230,4 @@ if __name__ == '__main__':
 	lc = LoopingCall(gs.pygame_interior)
 	lc.start(1/FPS)
 	reactor.run()
+	sys.exit()
