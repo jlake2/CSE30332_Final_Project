@@ -290,15 +290,15 @@ class GameSpace:
 			bullet.tick()
 		self.screen.fill(self.black)
 		
+		if self.enemy.health >0:
+			self.screen.blit(self.enemy.image,self.enemy.rect)
+		else:
+			self.screen.blit(self.redWinsImage,self.redWinsRect)
 		if self.player.health >0:
 			self.screen.blit(self.player.image,self.player.rect)
 		else:
 			self.screen.blit(self.blueWinsImage,self.blueWinsRect)
-		if self.enemy.health >0:
-			self.screen.blit(self.enemy.image,self.enemy.rect)
-		else:
-			self.screen.fill(self.black)
-			self.screen.blit(self.redWinsImage,self.redWinsRect)
+
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
 		for wall in self.wall_list:
