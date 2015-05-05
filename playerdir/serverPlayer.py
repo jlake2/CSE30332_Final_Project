@@ -249,7 +249,6 @@ class Player(pygame.sprite.Sprite):
 					elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
 						self.down = 0
 				elif event.type is pygame.QUIT:
-					pygame.quit()
 					reactor.stop()
 
 			#Determine the velocity: 
