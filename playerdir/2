@@ -36,15 +36,9 @@ class Bullet(pygame.sprite.Sprite):
 			self.kill()
 
 class Wall(pygame.sprite.Sprite):
-	#left = 1
-	#top = 2
-	#right = 3
-	#down = 4
-	#plat = 5
-	def __init__(self, gs=None, x_pos=0, y_pos=0,type=5):
+	def __init__(self, gs=None, x_pos=0, y_pos=0):
 		#Initialize the sprite, sound, and images:
 		gs.wall = self
-		self.type = type
 		pygame.sprite.Sprite.__init__(self)
 		try:
 			self.image = pygame.image.load("images/wall.png")
@@ -93,29 +87,30 @@ class Player(pygame.sprite.Sprite):
 	def collideWalls(self):
 		for wall in gs.wall_list:
 		    if self.rect.colliderect(wall.rect):	
-			if wall.type == 5:
-				print "PLAT"
-				if self.velY <0:
-					self.rect.top = wall.rect.bottom+1
-				else:
-					self.rect.bottom = wall.rect.top-1
+			if self.velY < 0: #moving up
 				self.velY = 0
-			elif wall.type == 1:
-				print "LEFT"
-				self.rect.left = wall.rect.right+1
-			elif wall.type == 2:
-				print "TOP"
-				self.rect.top = wall.rect.bottom+1
+				self.rect.top = wall.rect.bottom 
+			if self.velY > 0: #moving down
 				self.velY = 0
-			elif wall.type == 3:
-				print "RIGHT"
-				self.rect.right = wall.rect.left-1
-			elif wall.type == 4:
-				print "BOTTOM"
-				self.rect.bottom = wall.rect.top-1
-				self.velY = 0
-			
-			
+				self.rect.bottom = wall.rect.top
+			if self.velX > 0: #moving right
+			   #if y collison has already happened (AS IT WILL FOR WALKING) need to make sure its a collision between the sides 
+				if self.rect.right > wall.rect.left and self.rect.right>=SCREEN_WIDTH:
+					print self.rect.right, wall.rect.left, SCREEN_WIDTH
+					self.velX=0
+					self.rect.right=wall.rect.left-2
+					break
+			if self.velX < 1: #moving left
+				if self.rect.left < wall.rect.right and self.rect.left <= 0:
+					print self.rect.left, wall.rect.right
+					self.velX=0
+					self.rect.left=wall.rect.right+2
+					self.rect.top = self.rect.top
+					break
+
+
+  
+
 	#Tick (alters movement and rotates the player)
 	def tick(self):
 		#User input: 
@@ -187,20 +182,20 @@ class GameSpace:
 		self.player = Player(self)
 		self.wall_list = []
 		for x in range(0, 80):
-			self.wall_list.append(Wall(self, 0, 10*x,1)) 
-			self.wall_list.append(Wall(self, 10*x, 790,4)) 
-			self.wall_list.append(Wall(self, 790, 10*x,3)) 
-			self.wall_list.append(Wall(self, 10*x, 0,2)) 
+			self.wall_list.append(Wall(self, 0, 10*x)) 
+			self.wall_list.append(Wall(self, 10*x, 790)) 
+			self.wall_list.append(Wall(self, 790, 10*x)) 
+			self.wall_list.append(Wall(self, 10*x, 0)) 
 		for x in range (0, 40):
 			if x > 20 and x < 30:
 				continue
-			self.wall_list.append(Wall(self, 10*x, 100,5)) 
-			self.wall_list.append(Wall(self, 10*x+400, 200,5)) 
-			self.wall_list.append(Wall(self, 10*x, 350,5))
-			self.wall_list.append(Wall(self, 10*x+400, 450,5))  
+			self.wall_list.append(Wall(self, 10*x, 100)) 
+			self.wall_list.append(Wall(self, 10*x+400, 200)) 
+			self.wall_list.append(Wall(self, 10*x, 350))
+			self.wall_list.append(Wall(self, 10*x+400, 450))  
 		for x in range (0, 30):
-			self.wall_list.append(Wall(self, 10*x, 700,5)) 
-			self.wall_list.append(Wall(self, 10*x+410, 600,5))
+			self.wall_list.append(Wall(self, 10*x, 700)) 
+			self.wall_list.append(Wall(self, 10*x+410, 600))
 		self.bullet_list = []
 
 

@@ -1,0 +1,36 @@
+if self.velY < 1 and self.velX == 0: #moving up
+				self.velY = 1
+				self.rect.top = wall.rect.bottom 
+			elif self.velY > 1 and self.velX == 0: #moving down
+				self.velY = 1
+				self.rect.bottom = wall.rect.top
+			elif self.velX > 0: #moving right
+			   #if y collison has already happened (AS IT WILL FOR WALKING) need to make sure its a collision between the sides 
+				if self.rect.right > wall.rect.left:
+					print self.rect.right, wall.rect.left, SCREEN_WIDTH, "RIGHT"
+					self.velX=0
+					self.rect.right=wall.rect.left-2
+					if self.velY ==1:
+						self.rect.bottom = wall.rect.bottom
+					break
+				else:
+					if self.velY ==1:
+						self.rect.bottom = wall.rect.bottom
+
+	
+
+			elif self.velX < 0: #moving left
+				if self.rect.left < wall.rect.right: 
+					print self.rect.left, wall.rect.right, "LEFT"
+					self.velX=0
+					self.rect.left=wall.rect.right+2
+					if self.velY ==1:
+						self.rect.bottom = wall.rect.bottom
+					break
+				else:
+					if self.velY ==1:
+						self.rect.bottom = wall.rect.bottom
+
+
+  
+
