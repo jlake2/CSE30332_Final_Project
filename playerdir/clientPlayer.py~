@@ -23,19 +23,34 @@ class Data(LineReceiver):
 	def __init__(self,gs=None):
 		self.gs = gs
 	#Forward data to client connection
+	def connectionMade(self):
+		gs.areConnected()
 	def dataReceived(self,data):
 		d = pickle.loads(data)	
-		print type(d)
+		if type(d) is pygame.Rect:
+			gs.moveEnemy(d)
+		else:
+			if d['message'] == "makeBullet":
+				gs.createBullet(d['x'], d['y'], d['facing'])
+			if d['message'] == "deleteBullet":
+				gs.deleteBullet(d['b_x'])
+			if d['message'] == "deletePlayer":
+				print "Enemy Dead"
+				gs.deletePlayer()
+
+		#print type(d)
 	#Send data along data connection
 	def sendData(self,arg):
-		self.transport.write(arg)
-	def connectionMade(self):
-		print "connection made in client player port 9876"
+		self.sendLine(arg)
+
 
 #Factory for Data connection
 class DataFactory(ClientFactory):
 	def __init__(self,gs=None):
-		self.prot = Data(gs)
+		self.gs = None
+		self.prot = None
+	def makeProt(self):
+		self.prot = Data(self.gs)
 	def buildProtocol(self, addr):
 		return self.prot
 	def getProt(self):
@@ -61,7 +76,17 @@ class Bullet(pygame.sprite.Sprite):
 		self.rect = self.rect.move(self.velX,0)
 		#code to kill bullet once off screen ... syntax not working
 		if (self.rect.right > 1000 or self.rect.left < -1000 or self.rect.top > 1000 or self.rect.bottom < -1000):
-			self.kill()
+			del self
+
+#	def bullet_collision(self):
+#		for wall in gs.wall_list:
+#			if self.rect.colliderect(wall.rect):	
+#				#Depending on the type of wall, react accordingly
+#				bullet_dict = {}
+#				bullet_dict['message'] = "deleteBullet"
+#				pd = pickle.dumps(bullet_dict)
+#				df.getProt().sendData(pd)
+		
 
 class Wall(pygame.sprite.Sprite):
 	#left = 1
@@ -97,7 +122,9 @@ class Player(pygame.sprite.Sprite):
 		self.right = 0
 		self.up = 0
 		self.down = 0
-
+		self.health = 5
+		self.bullets = 3
+		self.reloadDelay = 0
 		#Location/velocity of the death star:
 		self.location = self.rect
 		self.gravity = 1
@@ -117,6 +144,19 @@ class Player(pygame.sprite.Sprite):
 		if l.x >= SCREEN_WIDTH-self.rect.w:
 			l.x = SCREEN_WIDTH-self.rect.w
 		# If you collide with a wall, move out based on velocity
+
+	def collideBullets(self):
+		for b in gs.bullet_list:
+			if self.rect.colliderect(b.rect):
+				gs.bullet_list.remove(b)
+				dict ={}
+				dict['message'] = "deleteBullet"
+				dict['b_x'] = b.rect.x
+				pd = pickle.dumps(dict)
+				df.getProt().sendData(pd)
+				self.health = self.health -1
+
+
 
 	def collideWalls(self):
 		for wall in gs.wall_list:
@@ -139,57 +179,83 @@ class Player(pygame.sprite.Sprite):
 				self.rect.bottom = wall.rect.top-1
 				self.velY = 0
 			
-			
+		
 	#Tick (alters movement and rotates the player)
 	def tick(self):
 		#User input: 
-		for event in pygame.event.get():
-			#If you press a key, move in that direction
-			if event.type is pygame.KEYDOWN:
-				if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-					self.left = 1
-					self.facing = 1
-				elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-					self.right = 1
-					self.facing = 0
-				elif event.key == pygame.K_UP or event.key == pygame.K_w:
-					self.up = 1
-				elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-					self.down = 1
-				elif event.key == pygame.K_SPACE:
-					self.jump()
-				elif event.key == pygame.K_c:
-					gs.bullet_list.append(Bullet(self.gs,self.rect.x,self.rect.y,self.facing))
-			#if you let up on a key in a direction, stop motion in that direction: 
-			elif event.type is pygame.KEYUP:
-				if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-					self.left = 0
-				elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-					self.right = 0
-				elif event.key == pygame.K_UP or event.key == pygame.K_w:
-					self.up = 0
-				elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-					self.down = 0
-			elif event.type is pygame.MOUSEBUTTONDOWN:
-				gs.bullet_list.append(Bullet(self.gs,self.rect.x,self.rect.y,self.facing))
-			elif event.type is pygame.QUIT:
-				pygame.quit()
-				reactor.stop()
-				#sys.exit(0)
+		self.reloadDelay = self.reloadDelay + 1
+		print self.bullets
+		if self.reloadDelay == 100:
+			self.reloadDelay = 0
+			self.bullets= self.bullets + 1
+		if self.health != 0:
+			for event in pygame.event.get():
+				#If you press a key, move in that direction
+				if event.type is pygame.KEYDOWN:
+					if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+						self.left = 1
+						self.facing = 1
+					elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+						self.right = 1
+						self.facing = 0
+					elif event.key == pygame.K_UP or event.key == pygame.K_w:
+						self.up = 1
+					elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+						self.down = 1
+					elif event.key == pygame.K_SPACE:
+						self.jump()
+					elif event.key == pygame.K_c:
+						self.bullets = self.bullets-1
+						if(self.bullets > 0):
+							if self.facing == 0:
+								b = Bullet(self.gs,self.rect.right+10,self.rect.y,self.facing)
+							if self.facing ==1:
+								b = Bullet(self.gs,self.rect.left - 20,self.rect.y,self.facing)
+							gs.bullet_list.append(b)
+							if self.gs.connected == 1:
+								bullet_dict = {}
+								bullet_dict['message'] = "makeBullet"
+								bullet_dict['x'] = self.rect.x
+								bullet_dict['y'] = self.rect.y
+								bullet_dict['facing'] = self.facing
+								pd = pickle.dumps(bullet_dict)
+								df.getProt().sendData(pd)
+					#if you let up on a key in a direction, stop motion in that direction: 
+				elif event.type is pygame.KEYUP:
+					if event.key == pygame.K_LEFT or event.key == pygame.K_a:
+						self.left = 0
+					elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+						self.right = 0
+					elif event.key == pygame.K_UP or event.key == pygame.K_w:
+						self.up = 0
+					elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+						self.down = 0
+
+				elif event.type is pygame.QUIT:
+					pygame.quit()
+					reactor.stop()
+					sys.exit(0)
+
+			#Determine the velocity: 
+			self.velX = 0
+			if self.left:
+				self.velX = -5
+			elif self.right:
+				self.velX = 5
 
 
-		#Determine the velocity: 
-		self.velX = 0
-		if self.left:
-			self.velX = -5
-		elif self.right:
-			self.velX = 5
-		
+			#Gravity
+			self.velY = self.velY + self.gravity
+			self.rect = self.rect.move(self.velX,self.velY)
+			self.collideWalls()
+			self.collideBullets()
 
-		#Gravity
-		self.velY = self.velY + self.gravity
-		self.rect = self.rect.move(self.velX,self.velY)
-		self.collideWalls()
+		if self.health <= 0:
+			health_dict = {}
+			health_dict['message'] = "deletePlayer"
+			pd = pickle.dumps(health_dict)
+			df.getProt().sendData(pd)
+			print "SENDING DELETED PLAYER"
 
 #Main game class: 
 class GameSpace:
@@ -197,13 +263,17 @@ class GameSpace:
 		#Initialize everything:
 		pygame.init()
 		pygame.mixer.init()
-
+		self.connected = 0
 		self.size = self.width,self.height=800,800
 		self.black = 0,0,0
 		self.screen = pygame.display.set_mode(self.size)
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
+		self.enemy = Player(self)
+		self.enemy.rect.left = -100 
 		self.wall_list = []
+		self.bullet_dict = {}
+		self.enemy.image = pygame.image.load("images/redBlock2.png")
 		for x in range(0, 80):
 			self.wall_list.append(Wall(self, 0, 10*x,1)) 
 			self.wall_list.append(Wall(self, 10*x, 790,4)) 
@@ -222,20 +292,38 @@ class GameSpace:
 		self.bullet_list = []
 
 
+	def areConnected(self):
+		self.connected = 1
 
+	def moveEnemy(self, enemy_rect):
+		self.enemy.rect = enemy_rect
+	
+	def createBullet(self, x, y, facing):
+		b= Bullet(self, x, y, facing)
+		self.bullet_list.append(b)
 
-		#Main game loop;
+	def deleteBullet(self, b_x):
+		for b in self.bullet_list:
+			if abs(b.rect.x - b_x) < 100:
+				self.bullet_list.remove(b)
+
+	def deletePlayer(self):
+		print "IN DELETE PLAYER"
+		self.enemy.health = 0
+
 	def pygame_interior(self):
-
 		self.clock.tick(60)
 		self.player.tick()
-		p = pickle.dumps(self.player)
-		df.getProt.sendData(p)
-		#self.bullet.tick()
+		pd = pickle.dumps(self.player.rect)
+		if self.connected:
+			df.getProt().sendData(pd)
 		for bullet in self.bullet_list:
 			bullet.tick()
 		self.screen.fill(self.black)
-		self.screen.blit(self.player.image,self.player.rect)
+		if self.player.health >0:
+			self.screen.blit(self.player.image,self.player.rect)
+		if self.enemy.health >0:
+			self.screen.blit(self.enemy.image,self.enemy.rect)
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
 		for wall in self.wall_list:
@@ -243,14 +331,15 @@ class GameSpace:
 			self.screen.blit(wall.image, wall.rect)
 		pygame.display.flip()
 
-
+df = DataFactory()
 
 
 #Run the game 
 if __name__ == '__main__':
 	gs = GameSpace()
-	df = DataFactory(gs)
-	reactor.connectTCP('fitz94', 9876, df)
+	df.gs = gs
+	df.makeProt()
+	reactor.connectTCP('fitz94', 9876, df) #command connection
 	gs.main()
 	FPS = 45
 	lc = LoopingCall(gs.pygame_interior)
