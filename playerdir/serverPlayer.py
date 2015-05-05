@@ -249,11 +249,16 @@ class GameSpace:
 		self.connected = 0
 		self.black = 0,0,0
 		self.screen = pygame.display.set_mode(self.size)
+		pygame.display.set_caption("RED VS BLUE")
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
 		self.enemy = Player(self)
 		self.wall_list = []
 		self.enemy.image = pygame.image.load("images/blueBlock2.png")
+		self.redWinsImage = pygame.image.load("images/redWins.png")
+		self.blueWinsImage = pygame.image.load("images/blueWins.png")
+		self.redWinsRect = self.redWinsImage.get_rect()
+		self.blueWinsRect = self.blueWinsImage.get_rect()
 		self.enemy.rect.left = -100
 		for x in range(0, 80):
 			self.wall_list.append(Wall(self, 0, 10*x,1)) 
@@ -284,10 +289,16 @@ class GameSpace:
 		for bullet in self.bullet_list:
 			bullet.tick()
 		self.screen.fill(self.black)
+		
 		if self.player.health >0:
 			self.screen.blit(self.player.image,self.player.rect)
+		else:
+			self.screen.blit(self.blueWinsImage,self.blueWinsRect)
 		if self.enemy.health >0:
 			self.screen.blit(self.enemy.image,self.enemy.rect)
+		else:
+			self.screen.fill(self.black)
+			self.screen.blit(self.redWinsImage,self.redWinsRect)
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
 		for wall in self.wall_list:
