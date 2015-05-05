@@ -88,10 +88,10 @@ class Player(pygame.sprite.Sprite):
 	def __init__(self,gs=None):
 		#Initialize the sprite, sound, and images:
 		pygame.sprite.Sprite.__init__(self)
-		self.image = pygame.image.load("images/redBlock2.png")
+		self.image = pygame.image.load("images/blueBlock2.png")
 		self.gs = gs
 		self.rect = self.image.get_rect()
-		self.rect = self.rect.move(50,SCREEN_HEIGHT-self.rect.h)
+		self.rect = self.rect.move(770,0+self.rect.h)
 		self.facing = 0
 		self.left = 0
 		self.right = 0
@@ -229,6 +229,8 @@ class GameSpace:
 
 		self.clock.tick(60)
 		self.player.tick()
+		p = pickle.dumps(self.player.rect)
+		df.getProt.sendData(p)
 		#self.bullet.tick()
 		for bullet in self.bullet_list:
 			bullet.tick()
@@ -248,7 +250,7 @@ class GameSpace:
 if __name__ == '__main__':
 	gs = GameSpace()
 	df = DataFactory(gs)
-	reactor.connectTCP('student00.cse.nd.edu', 9876, df)
+	reactor.connectTCP('fitz94', 9876, df)
 	gs.main()
 	FPS = 45
 	lc = LoopingCall(gs.pygame_interior)
