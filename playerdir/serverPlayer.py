@@ -60,7 +60,7 @@ class Bullet(pygame.sprite.Sprite):
 		#Initialize the sprite, sound, and images:
 		gs.bullet = self
 		pygame.sprite.Sprite.__init__(self)
-		self.image = pygame.image.load("laser.png")
+		self.image = pygame.image.load("images/laser.png")
 		self.rect = self.image.get_rect()
 		self.rect = self.rect.move(posX,posY)
 
@@ -372,6 +372,5 @@ if __name__ == '__main__':
 	gs.screen.blit(gs.welcomeImage,gs.welcomeRect)
 	pygame.display.flip()
 	lc = LoopingCall(gs.pygame_interior)
-	#lc.start(1/FPS)
 	reactor.run()
 	sys.exit()
