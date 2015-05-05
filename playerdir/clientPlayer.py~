@@ -29,8 +29,6 @@ class Data(LineReceiver):
 	#Send data along data connection
 	def sendData(self,arg):
 		self.transport.write(arg)
-	def connectionMade(self):
-		print "connection made in client player port 9876"
 
 #Factory for Data connection
 class DataFactory(ClientFactory):

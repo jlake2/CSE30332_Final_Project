@@ -29,8 +29,6 @@ class Data(LineReceiver):
 	#Send data along data connection
 	def sendData(self,arg):
 		self.transport.write(arg)
-	def connectionMade(self):
-		print "connection made in client player port 9876"
 
 #Factory for Data connection
 class DataFactory(ClientFactory):
@@ -248,7 +246,7 @@ class GameSpace:
 if __name__ == '__main__':
 	gs = GameSpace()
 	df = DataFactory(gs)
-	reactor.connectTCP('student00.cse.nd.edu', 9876, df)
+	reactor.listenTCP(9876,df)
 	gs.main()
 	FPS = 45
 	lc = LoopingCall(gs.pygame_interior)
