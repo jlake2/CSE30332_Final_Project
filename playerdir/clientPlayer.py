@@ -307,13 +307,13 @@ class GameSpace:
 		for x in range (0, 40):
 			if x > 20 and x < 30:
 				continue
-			self.wall_list.append(Wall(self, 10*x, 100,5)) 
-			self.wall_list.append(Wall(self, 10*x+400, 200,5)) 
-			self.wall_list.append(Wall(self, 10*x, 350,5))
-			self.wall_list.append(Wall(self, 10*x+400, 450,5))  
+			self.wall_list.append(Wall(self, 10*x, 100,5, 1)) 
+			self.wall_list.append(Wall(self, 10*x+400, 200,5, 0)) 
+			self.wall_list.append(Wall(self, 10*x, 350,5, 1))
+			self.wall_list.append(Wall(self, 10*x+400, 450,5, 0))  
 		for x in range (0, 30):
-			self.wall_list.append(Wall(self, 10*x, 700,5)) 
-			self.wall_list.append(Wall(self, 10*x+410, 600,5))
+			self.wall_list.append(Wall(self, 10*x, 700,5, 1)) 
+			self.wall_list.append(Wall(self, 10*x+410, 600,5,0))
 		self.bullet_list = []
 
 

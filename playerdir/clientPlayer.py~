@@ -2,6 +2,8 @@
 #Final Project
 #Shooter Platforming Game
 
+#This should be run second - this is the "client", or blue player
+
 import pygame
 import math
 import sys
@@ -22,7 +24,6 @@ SCREEN_HEIGHT = 800
 class Data(LineReceiver):
 	def __init__(self,gs=None):
 		self.gs = gs
-	#Forward data to client connection
 	def connectionMade(self):
 		gs.areConnected()
 	def dataReceived(self,data):
@@ -88,15 +89,18 @@ class Bullet(pygame.sprite.Sprite):
 		
 
 class Wall(pygame.sprite.Sprite):
+	#We use types of walls to determine collision results
 	#left = 1
 	#top = 2
 	#right = 3
 	#down = 4
-	#plat = 5
-	def __init__(self, gs=None, x_pos=0, y_pos=0,type=5):
+	#platform = 5
+	def __init__(self, gs=None, x_pos=0, y_pos=0,type=5,dir=0):
 		#Initialize the sprite, sound, and images:
 		gs.wall = self
 		self.type = type
+		self.dir = dir
+		self.yPos = y_pos
 		pygame.sprite.Sprite.__init__(self)
 		try:
 			self.image = pygame.image.load("images/wall.png")
@@ -106,6 +110,19 @@ class Wall(pygame.sprite.Sprite):
 			exit(0)
 		self.rect = self.image.get_rect()
 		self.rect = self.rect.move(x_pos, y_pos)
+	def tick(self):
+		if self.type == 5:
+			#move back and forth:
+			if self.dir:
+				#move left:
+				self.rect = self.rect.move(1,0)
+			else:
+				#move right:
+				self.rect = self.rect.move(-1,0)
+			if self.rect.right >= SCREEN_WIDTH-self.rect.width:
+				self.dir = 0
+			elif self.rect.left == self.rect.width:
+				self.dir = 1
 
 #Player class: 
 class Player(pygame.sprite.Sprite):
@@ -124,12 +141,14 @@ class Player(pygame.sprite.Sprite):
 		self.health = 5
 		self.bullets = 3
 		self.reloadDelay = 0
-		#Location/velocity of the death star:
+		self.canJump = 1
+		#Location/velocity of the blue player
 		self.location = self.rect
 		self.gravity = 1
 		self.velX = 0
 		self.velY = 0
 	def jump(self):
+		self.canJump = 0
 		self.velY = -20
 
 	def containWithinBorder(self):
@@ -166,6 +185,7 @@ class Player(pygame.sprite.Sprite):
 					self.rect.top = wall.rect.bottom+1
 				else:
 					self.rect.bottom = wall.rect.top-1
+					self.canJump = 1
 				self.velY = 0
 			elif wall.type == 1:
 				self.rect.left = wall.rect.right+1
@@ -176,6 +196,7 @@ class Player(pygame.sprite.Sprite):
 				self.rect.right = wall.rect.left-1
 			elif wall.type == 4:
 				self.rect.bottom = wall.rect.top-1
+				self.canJump = 1
 				self.velY = 0
 			
 		
@@ -201,7 +222,8 @@ class Player(pygame.sprite.Sprite):
 					elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
 						self.down = 1
 					elif event.key == pygame.K_SPACE:
-						self.jump()
+						if self.canJump:
+							self.jump()
 					elif event.key == pygame.K_c:
 						if(self.bullets > 0):
 							self.bullets = self.bullets-1
@@ -324,11 +346,18 @@ class GameSpace:
 		self.screen.fill(self.black)
 		if self.player.health >0:
 			self.screen.blit(self.player.image,self.player.rect)
+		else:
+			self.screen.blit(self.redWinsImage,self.redWinsRect)
+			self.screen.blit(self.enemy.image,self.enemy.rect)
 		if self.enemy.health >0:
 			self.screen.blit(self.enemy.image,self.enemy.rect)
+		else:
+			self.screen.blit(self.blueWinsImage,self.blueWinsRect)
+			self.screen.blit(self.player.image,self.player.rect)
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
 		for wall in self.wall_list:
+			wall.tick()
 			self.screen.blit(wall.image, wall.rect)
 		pygame.display.flip()
 
