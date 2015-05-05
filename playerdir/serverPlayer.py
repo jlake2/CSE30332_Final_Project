@@ -23,17 +23,23 @@ class Data(LineReceiver):
 	def __init__(self,gs=None):
 		self.gs = gs
 	#Forward data to client connection
+	def connectionMade(self):
+		print "Made connection!"
 	def dataReceived(self,data):
+		print data
 		d = pickle.loads(data)	
 		print type(d)
 	#Send data along data connection
 	def sendData(self,arg):
-		self.transport.write(arg)
+		self.sendLine(arg)
 
 #Factory for Data connection
 class DataFactory(Factory):
 	def __init__(self,gs=None):
-		self.prot = Data(gs)
+		self.gs = None
+		self.prot = None
+	def makeProt(self):
+		self.prot = Data(self.gs)
 	def buildProtocol(self, addr):
 		return self.prot
 	def getProt(self):
@@ -173,8 +179,7 @@ class Player(pygame.sprite.Sprite):
 			elif event.type is pygame.QUIT:
 				pygame.quit()
 				reactor.stop()
-				#sys.exit(0)
-
+				sys.exit(0)
 
 		#Determine the velocity: 
 		self.velX = 0
@@ -182,7 +187,6 @@ class Player(pygame.sprite.Sprite):
 			self.velX = -5
 		elif self.right:
 			self.velX = 5
-		
 
 		#Gravity
 		self.velY = self.velY + self.gravity
@@ -201,7 +205,9 @@ class GameSpace:
 		self.screen = pygame.display.set_mode(self.size)
 		self.clock = pygame.time.Clock()
 		self.player = Player(self)
+		self.enemy = Player(self)
 		self.wall_list = []
+		self.enemy.image = pygame.image.load("images/blueBlock2.png")
 		for x in range(0, 80):
 			self.wall_list.append(Wall(self, 0, 10*x,1)) 
 			self.wall_list.append(Wall(self, 10*x, 790,4)) 
@@ -220,18 +226,15 @@ class GameSpace:
 		self.bullet_list = []
 
 
-
-
-		#Main game loop;
 	def pygame_interior(self):
-
 		self.clock.tick(60)
 		self.player.tick()
-		#self.bullet.tick()
+		df.getProt().sendData("test")
 		for bullet in self.bullet_list:
 			bullet.tick()
 		self.screen.fill(self.black)
 		self.screen.blit(self.player.image,self.player.rect)
+		self.screen.blit(self.enemy.image,self.enemy.rect)
 		for bullet in self.bullet_list:
 			self.screen.blit(bullet.image, bullet.rect)
 		for wall in self.wall_list:
@@ -239,13 +242,13 @@ class GameSpace:
 			self.screen.blit(wall.image, wall.rect)
 		pygame.display.flip()
 
-
-
+df = DataFactory()
 
 #Run the game 
 if __name__ == '__main__':
 	gs = GameSpace()
-	df = DataFactory(gs)
+	df.gs = gs
+	df.makeProt()
 	reactor.listenTCP(9876,df)
 	gs.main()
 	FPS = 45
